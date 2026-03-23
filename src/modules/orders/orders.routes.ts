@@ -1,16 +1,19 @@
 import { Router } from "express";
 import * as OrdersController from "./orders.controller";
+import { requireAdmin } from "../../middleware/authMiddleware";
 
 const router = Router();
 
-// these static routes must be before /:id to avoid being matched as an ID
-router.get("/stats/summary", OrdersController.getOrderStats);
+// Public — customer facing
+router.post("/", OrdersController.createOrder);
 router.get("/track", OrdersController.trackOrder);
 
-router.post("/", OrdersController.createOrder);
-router.get("/", OrdersController.getOrders);
-router.get("/:id", OrdersController.getOrderById);
-router.patch("/:id", OrdersController.updateOrderStatus);
-router.delete("/:id", OrdersController.deleteOrder);
+// Admin only
+router.get("/stats/summary", requireAdmin, OrdersController.getOrderStats);
+router.get("/admin-track", requireAdmin, OrdersController.adminTrackOrder);
+router.get("/", requireAdmin, OrdersController.getOrders);
+router.get("/:id", requireAdmin, OrdersController.getOrderById);
+router.patch("/:id", requireAdmin, OrdersController.updateOrderStatus);
+router.delete("/:id", requireAdmin, OrdersController.deleteOrder);
 
 export default router;

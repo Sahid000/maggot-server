@@ -6,16 +6,18 @@ export async function createOrder(req: Request, res: Response) {
     const result = await OrdersService.createOrder(req.body);
     res.status(result.status).json(result);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "Failed to create order", error: error.message });
+    console.error("[createOrder]", error);
+    res.status(500).json({ success: false, message: "Failed to create order" });
   }
 }
 
 export async function updateOrderStatus(req: Request, res: Response) {
   try {
-    const result = await OrdersService.updateOrderStatus(req.params.id, req.body.status);
+    const result = await OrdersService.updateOrderStatus(req.params.id, req.body.status, req.body.reason);
     res.status(result.status).json(result);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "Failed to update order", error: error.message });
+    console.error("[updateOrderStatus]", error);
+    res.status(500).json({ success: false, message: "Failed to update order" });
   }
 }
 
@@ -24,7 +26,8 @@ export async function getOrders(req: Request, res: Response) {
     const result = await OrdersService.getOrders(req.query as any);
     res.status(result.status).json(result);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "Failed to fetch orders", error: error.message });
+    console.error("[getOrders]", error);
+    res.status(500).json({ success: false, message: "Failed to fetch orders" });
   }
 }
 
@@ -33,7 +36,8 @@ export async function getOrderById(req: Request, res: Response) {
     const result = await OrdersService.getOrderById(req.params.id);
     res.status(result.status).json(result);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "Failed to fetch order", error: error.message });
+    console.error("[getOrderById]", error);
+    res.status(500).json({ success: false, message: "Failed to fetch order" });
   }
 }
 
@@ -42,7 +46,8 @@ export async function deleteOrder(req: Request, res: Response) {
     const result = await OrdersService.deleteOrder(req.params.id);
     res.status(result.status).json(result);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "Failed to delete order", error: error.message });
+    console.error("[deleteOrder]", error);
+    res.status(500).json({ success: false, message: "Failed to delete order" });
   }
 }
 
@@ -51,7 +56,8 @@ export async function getOrderStats(_req: Request, res: Response) {
     const result = await OrdersService.getOrderStats();
     res.status(result.status).json(result);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "Failed to fetch statistics", error: error.message });
+    console.error("[getOrderStats]", error);
+    res.status(500).json({ success: false, message: "Failed to fetch statistics" });
   }
 }
 
@@ -61,6 +67,18 @@ export async function trackOrder(req: Request, res: Response) {
     const result = await OrdersService.trackOrder(id, t);
     res.status(result.status).json(result);
   } catch (error: any) {
-    res.status(500).json({ success: false, message: "Failed to track order", error: error.message });
+    console.error("[trackOrder]", error);
+    res.status(500).json({ success: false, message: "Failed to track order" });
+  }
+}
+
+export async function adminTrackOrder(req: Request, res: Response) {
+  try {
+    const { id } = req.query as { id: string };
+    const result = await OrdersService.adminTrackOrder(id);
+    res.status(result.status).json(result);
+  } catch (error: any) {
+    console.error("[adminTrackOrder]", error);
+    res.status(500).json({ success: false, message: "Failed to track order" });
   }
 }

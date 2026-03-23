@@ -148,3 +148,62 @@ export async function getOrdersByDistrict(year?: number) {
 
   return { status: 200, success: true, data };
 }
+
+export async function getRevenueByMonth(year: number) {
+  const { start, end } = getYearRange(year);
+
+  const raw = await getOrdersCollection()
+    .aggregate([
+      { $match: { orderDate: { $gte: start, $lte: end }, status: { $in: ["approved", "completed"] } } },
+      {
+        $group: {
+          _id: { $month: "$orderDate" },
+          revenue: { $sum: "$totalPrice" },
+          orders: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ])
+    .toArray();
+
+  const revenueMap: Record<number, { revenue: number; orders: number }> = {};
+  for (const r of raw) revenueMap[r._id] = { revenue: r.revenue, orders: r.orders };
+
+  const data = MONTHS.map((month, i) => ({
+    month,
+    revenue: revenueMap[i + 1]?.revenue || 0,
+    orders: revenueMap[i + 1]?.orders || 0,
+  }));
+
+  return { status: 200, success: true, data };
+}
+
+export async function getRevenueStats() {
+  const collection = getOrdersCollection();
+
+  const [totalRevenueResult, avgOrderResult, completedCount] = await Promise.all([
+    collection
+      .aggregate([
+        { $match: { status: { $in: ["approved", "completed"] } } },
+        { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+      ])
+      .toArray(),
+    collection
+      .aggregate([
+        { $match: { status: { $in: ["approved", "completed"] } } },
+        { $group: { _id: null, avg: { $avg: "$totalPrice" } } },
+      ])
+      .toArray(),
+    collection.countDocuments({ status: { $in: ["approved", "completed"] } }),
+  ]);
+
+  return {
+    status: 200,
+    success: true,
+    data: {
+      totalRevenue: totalRevenueResult[0]?.total || 0,
+      averageOrderValue: Math.round(avgOrderResult[0]?.avg || 0),
+      paidOrders: completedCount,
+    },
+  };
+}

@@ -70,3 +70,105 @@ export async function resendOTP(req: Request, res: Response) {
     res.status(500).json({ success: false, message: "Failed to resend OTP" });
   }
 }
+
+export const adminLogin = async (req: Request, res: Response) => {
+  try {
+    const result = await AuthService.adminLogin(req.body);
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const result = await AuthService.changePassword(user.userId, req.body);
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const seedAdmin = async (req: Request, res: Response) => {
+  const secret = req.query.secret as string;
+  const expectedSecret = process.env.SEED_SECRET;
+  if (!expectedSecret || secret !== expectedSecret) {
+    return res.status(403).json({ success: false, message: "Forbidden" });
+  }
+  try {
+    const result = await AuthService.seedAdminUser();
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const result = await AuthService.forgotPasswordSendOTP(req.body.email);
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const verifyResetOTP = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers["token"] as string;
+    const { otp } = req.body;
+    const result = await AuthService.verifyResetOTP(token, otp);
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const resendResetOTP = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers["token"] as string;
+    const result = await AuthService.resendResetOTP(token);
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers["token"] as string;
+    const { newPassword } = req.body;
+    const result = await AuthService.resetPassword(token, newPassword);
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const listAdmins = async (_req: Request, res: Response) => {
+  try {
+    const result = await AuthService.listAdmins();
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const addAdmin = async (req: Request, res: Response) => {
+  try {
+    const result = await AuthService.addAdmin(req.body);
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export const removeAdmin = async (req: Request, res: Response) => {
+  try {
+    const requestingAdmin = (req as any).user;
+    const result = await AuthService.removeAdmin(req.params.id, requestingAdmin.userId);
+    res.status(result.status).json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
