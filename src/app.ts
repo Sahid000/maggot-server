@@ -20,6 +20,9 @@ const allowedOrigins = [...new Set([...DEFAULT_DEV_ORIGINS, ...ALLOWED_ORIGINS])
 
 const app = express();
 
+// Trust Vercel/reverse-proxy forwarded headers (required for rate limiting on Vercel)
+app.set("trust proxy", 1);
+
 // Security headers
 app.use(helmet());
 
