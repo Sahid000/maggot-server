@@ -114,15 +114,16 @@ export async function createOrder(payload: ICreateOrderPayload) {
     { expiresIn: "30d" }
   );
 
-  if (email) {
-    sendOrderTrackingEmail(email, name, orderId, newOrder).catch(console.error);
-  }
-
-  // Notify admin about new order
+  // Send both emails and wait — Vercel serverless may terminate after res.json()
+  // so fire-and-forget is unreliable for slow operations like PDF generation
   const adminEmail = process.env.EMAIL_USER;
-  if (adminEmail) {
-    sendAdminNewOrderEmail(adminEmail, newOrder).catch(console.error);
-  }
+  const emailTasks: Promise<any>[] = [];
+  if (email) emailTasks.push(sendOrderTrackingEmail(email, name, orderId, newOrder));
+  if (adminEmail) emailTasks.push(sendAdminNewOrderEmail(adminEmail, newOrder));
+  const emailResults = await Promise.allSettled(emailTasks);
+  emailResults.forEach((r) => {
+    if (r.status === "rejected") console.error("[Email send failed]", r.reason);
+  });
 
   return {
     status: 201,
