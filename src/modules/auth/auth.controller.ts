@@ -100,7 +100,8 @@ export const seedAdmin = async (req: Request, res: Response) => {
     const result = await AuthService.seedAdminUser();
     res.status(result.status).json(result);
   } catch (err) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("[seedAdmin] Error:", err);
+    res.status(500).json({ success: false, message: "Internal server error", error: (err as Error).message });
   }
 };
 
