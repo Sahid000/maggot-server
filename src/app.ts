@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { connectDB } from "./config/db";
 import authRoutes from "./modules/auth/auth.routes";
 import ordersRoutes from "./modules/orders/orders.routes";
 import analyticsRoutes from "./modules/analytics/analytics.routes";
@@ -58,6 +59,17 @@ const authLimiter = rateLimit({
 });
 
 app.use(express.json({ limit: "10kb" }));
+
+// Ensure DB is connected before every request (critical for Vercel serverless cold starts)
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("[DB CONNECT ERROR]", err);
+    next(err);
+  }
+});
 
 app.get("/", (_req, res) => {
   res.json({ message: "maggot server is running smoothly", timestamp: new Date() });
